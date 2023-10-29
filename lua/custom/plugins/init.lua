@@ -3,17 +3,40 @@
 --
 -- See the kickstart.nvim README for more information
 return {
-  "windwp/nvim-autopairs",
-  -- Optional dependency
-  dependencies = { 'hrsh7th/nvim-cmp' },
-  config = function()
-    require("nvim-autopairs").setup {}
-    -- If you want to automatically add `(` after selecting a function or method
-    local cmp_autopairs = require('nvim-autopairs.completion.cmp')
-    local cmp = require('cmp')
-    cmp.event:on(
-      'confirm_done',
-      cmp_autopairs.on_confirm_done()
-    )
-  end,
+  -- nvim-autopairs configuration
+  {
+    "windwp/nvim-autopairs",
+    -- Optional dependency
+    requires = { 'hrsh7th/nvim-cmp' },
+    config = function()
+      require("nvim-autopairs").setup {}
+      -- If you want to automatically add `(` after selecting a function or method
+      local cmp_autopairs = require('nvim-autopairs.completion.cmp')
+      local cmp = require('cmp')
+      cmp.event:on(
+        'confirm_done',
+        cmp_autopairs.on_confirm_done()
+      )
+    end,
+  },
+
+  -- vim-wakatime plugin
+  {
+    "wakatime/vim-wakatime"
+  },
+
+  -- todo-comments plugin
+  {
+    "folke/todo-comments.nvim",
+    event = "BufRead",
+    requires = "nvim-lua/plenary.nvim",
+    config = function()
+      require("todo-comments").setup()
+    end,
+  },
+  {
+    "fatih/vim-go"
+  },
+
+
 }
