@@ -2,7 +2,6 @@
 --  I promise not to create any merge conflicts in this directory :)
 --
 -- See the kickstart.nvim README for more information
-vim.g.polyglot_disabled = { 'sleuth' } -- Disable sleuth plugin from polyglot
 
 return {
   -- nvim-autopairs configuration
@@ -39,7 +38,7 @@ return {
 
   { 'fatih/vim-go' },
 
-  { 'sheerun/vim-polyglot' },
+  -- { 'sheerun/vim-polyglot' },
 
   { 'evanleck/vim-svelte' },
 
