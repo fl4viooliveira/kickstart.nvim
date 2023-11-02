@@ -273,7 +273,7 @@ vim.o.completeopt = 'menuone,noselect'
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
 
-vim.wo.scrolloff = 8
+vim.o.scrolloff = 8
 
 vim.o.tabstop = 2
 vim.o.softtabstop = 2
