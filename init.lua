@@ -571,12 +571,25 @@ cmp.setup {
     { name = 'luasnip' },
   },
 }
+
 require("cmp").setup({
   formatting = {
     format = require("tailwindcss-colorizer-cmp").formatter
   }
 })
 
+require("colorizer").setup {
+  user_default_options = {
+    RRGGBBAA = true,                                -- #RRGGBBAA hex codes
+    AARRGGBB = true,                                -- 0xAARRGGBB hex codes
+    rgb_fn = true,                                  -- CSS rgb() and rgba() functions
+    hsl_fn = true,                                  -- CSS hsl() and hsla() functions
+    css = true,                                     -- Enable all CSS features: rgb_fn, hsl_fn, names, RGB, RRGGBB
+    css_fn = true,                                  -- Enable all CSS *functions*: rgb_fn, hsl_fn
+    tailwind = true,                                -- Enable tailwind colors
+    sass = { enable = true, parsers = { "css" }, }, -- Enable sass colors
+  },
+}
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

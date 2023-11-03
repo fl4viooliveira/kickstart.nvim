@@ -38,9 +38,9 @@ return {
 
   { 'fatih/vim-go' },
 
-  -- { 'sheerun/vim-polyglot' },
-
   { 'evanleck/vim-svelte' },
+
+  { 'NvChad/nvim-colorizer.lua' },
 
   {
     "roobert/tailwindcss-colorizer-cmp.nvim",
@@ -51,6 +51,5 @@ return {
       })
     end
   },
-  { 'norcalli/nvim-colorizer.lua' },
   { 'junegunn/gv.vim' }
 }
