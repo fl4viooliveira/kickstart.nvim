@@ -51,5 +51,6 @@ return {
       })
     end
   },
-  { 'junegunn/gv.vim' }
+  { 'junegunn/gv.vim' },
+  { 'nanotee/sqls.nvim' }
 }
