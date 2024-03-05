@@ -52,5 +52,54 @@ return {
     end
   },
   { 'junegunn/gv.vim' },
-  { 'nanotee/sqls.nvim' }
+  { 'nanotee/sqls.nvim' },
+
+  -- C++ ---------------------
+  { 'Civitasv/cmake-tools.nvim' },
+  {
+    "rcarriga/nvim-dap-ui",
+    event = "VeryLazy",
+    dependencies = "mfussenegger/nvim-dap",
+    config = function()
+      local dap = require("dap")
+      local dapui = require("dapui")
+      dapui.setup()
+      dap.listeners.after.event_initialized["dapui_config"] = function()
+        dapui.open()
+      end
+      dap.listeners.before.event_terminated["dapui_config"] = function()
+        dapui.close()
+      end
+      dap.listeners.before.event_exited["dapui_config"] = function()
+        dapui.close()
+      end
+    end
+  },
+  {
+    "jay-babu/mason-nvim-dap.nvim",
+    event = "VeryLazy",
+    dependencies = {
+      "williamboman/mason.nvim",
+      "mfussenegger/nvim-dap",
+    },
+    opts = {
+      handlers = {}
+    },
+  },
+  {
+    "mfussenegger/nvim-dap",
+    config = function()
+      -- Define DAP key mappings directly here
+      local map = vim.api.nvim_set_keymap
+      local opts = { noremap = true, silent = true }
+
+      map('n', '<leader>dd', '<cmd>lua require"dap".toggle_breakpoint()<CR>', opts)
+      map('n', '<leader>dr', '<cmd>lua require"dap".continue()<CR>', opts)
+    end
+  },
+  {
+    "jose-elias-alvarez/null-ls.nvim",
+    event = "VeryLazy",
+  },
+
 }
