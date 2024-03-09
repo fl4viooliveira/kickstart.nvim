@@ -281,7 +281,6 @@ vim.o.shiftwidth = 2
 vim.o.expandtab = true
 
 
-
 -- [[ Basic Keymaps ]]
 
 -- Keymaps for better default experience

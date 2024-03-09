@@ -93,7 +93,7 @@ return {
       local map = vim.api.nvim_set_keymap
       local opts = { noremap = true, silent = true }
 
-      map('n', '<leader>dd', '<cmd>lua require"dap".toggle_breakpoint()<CR>', opts)
+      map('n', '<leader>de', '<cmd>lua require"dap".toggle_breakpoint()<CR>', opts)
       map('n', '<leader>dr', '<cmd>lua require"dap".continue()<CR>', opts)
     end
   },
