@@ -12,3 +12,7 @@ spell/
 lazy-lock.json
 
 .DS_Store
+
+# Neovim log dumps, written into the working directory
+nvim.log
+.nvimlog
