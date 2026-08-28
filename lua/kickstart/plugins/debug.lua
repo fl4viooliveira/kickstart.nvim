@@ -41,8 +41,22 @@ return {
         -- Update this to ensure that you have the debuggers for the langs you want
         'delve',
         'debugpy',
+        'codelldb',
       },
     }
+
+    -- Wire codelldb into rustaceanvim if both are installed.
+    local mason_registry_ok, mason_registry = pcall(require, 'mason-registry')
+    if mason_registry_ok and mason_registry.is_installed('codelldb') then
+      local codelldb_root = mason_registry.get_package('codelldb'):get_install_path() .. '/extension/'
+      local codelldb_path = codelldb_root .. 'adapter/codelldb'
+      local liblldb_path = codelldb_root .. 'lldb/lib/liblldb.dylib'
+      vim.g.rustaceanvim = vim.tbl_deep_extend('force', vim.g.rustaceanvim or {}, {
+        dap = {
+          adapter = require('rustaceanvim.config').get_codelldb_adapter(codelldb_path, liblldb_path),
+        },
+      })
+    end
 
     -- Basic debugging keymaps, feel free to change to your liking!
     vim.keymap.set('n', '<F5>', dap.continue, { desc = 'Debug: Start/Continue' })

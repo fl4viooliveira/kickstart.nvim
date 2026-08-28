@@ -385,44 +385,49 @@ local on_attach = function(_, bufnr)
 end
 
 require('mason').setup()
-require('mason-lspconfig').setup()
-local lspconfig = require 'lspconfig'
+
 local servers = {
   pyright = {
-    python = {
-      analysis = {
-        autoSearchPaths = true,
-        diagnosticMode = 'openFilesOnly',
-        useLibraryCodeForTypes = true,
+    settings = {
+      python = {
+        analysis = {
+          autoSearchPaths = true,
+          diagnosticMode = 'openFilesOnly',
+          useLibraryCodeForTypes = true,
+        },
       },
     },
   },
   lua_ls = {
-    Lua = {
-      workspace = { checkThirdParty = false },
-      telemetry = { enable = false },
+    settings = {
+      Lua = {
+        workspace = { checkThirdParty = false },
+        telemetry = { enable = false },
+      },
     },
   },
 }
-local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
-local mason_lspconfig = require 'mason-lspconfig'
-mason_lspconfig.setup { ensure_installed = vim.tbl_keys(servers) }
-mason_lspconfig.setup_handlers { function(server_name) require('lspconfig')[server_name].setup { capabilities = capabilities, on_attach = on_attach, settings = servers[server_name], filetypes = (servers[server_name] or {}).filetypes, } end }
 
--- Ruff installation via Mason can fail on some Python setups.
--- If a system ruff binary exists, attach Ruff LSP directly.
-local ruff_server = nil
-if lspconfig.ruff then
-  ruff_server = 'ruff'
-elseif lspconfig.ruff_lsp then
-  ruff_server = 'ruff_lsp'
+local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
+
+vim.lsp.config('*', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
+
+for name, cfg in pairs(servers) do
+  vim.lsp.config(name, cfg)
 end
 
-if vim.fn.executable 'ruff' == 1 and ruff_server then
-  lspconfig[ruff_server].setup {
-    capabilities = capabilities,
-    on_attach = on_attach,
-  }
+require('mason-lspconfig').setup {
+  ensure_installed = vim.tbl_keys(servers),
+  -- rustaceanvim owns rust_analyzer; keep mason-lspconfig from auto-enabling it.
+  automatic_enable = { exclude = { 'rust_analyzer' } },
+}
+
+-- Ruff: fall back to the system binary if Mason install fails.
+if vim.fn.executable 'ruff' == 1 then
+  vim.lsp.enable 'ruff'
 end
 
 vim.api.nvim_create_autocmd('LspAttach', {

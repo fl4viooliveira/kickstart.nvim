@@ -26,6 +26,8 @@ return {
     require('conform').setup {
       formatters_by_ft = {
         python = { 'ruff_organize_imports', 'ruff_format' },
+        rust = { 'rustfmt', lsp_format = 'fallback' },
+        toml = { 'taplo' },
         htmldjango = { 'djlint' },
         html = { 'prettier' },
         css = { 'prettier' },
