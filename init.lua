@@ -176,12 +176,20 @@ require('lazy').setup({
     },
   },
 
+  -- The `main` branch is the maintained one and the only one that supports Nvim
+  -- 0.12; `master` is frozen at 0.11. It is a full rewrite: the plugin now ships
+  -- parsers and queries only, and the features come from Nvim itself.
   {
     'nvim-treesitter/nvim-treesitter',
-    dependencies = {
-      'nvim-treesitter/nvim-treesitter-textobjects',
-    },
+    branch = 'main',
+    lazy = false,
     build = ':TSUpdate',
+  },
+  {
+    'nvim-treesitter/nvim-treesitter-textobjects',
+    branch = 'main',
+    lazy = false,
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
   },
 
   -- Icons support
@@ -225,6 +233,22 @@ vim.api.nvim_create_autocmd('FileType', {
   end,
 })
 
+-- netrw: keep the flat listing. Tree view (liststyle 3) miscomputes the line under
+-- the cursor, so <CR> opens the wrong entry or nothing at all while a mouse click,
+-- which resolves by screen position, still works.
+--
+-- Setting the global alone is not enough: netrw copies it into w:netrw_liststyle the
+-- first time a window browses, then only ever reads the window variable (netrw.vim
+-- 2984), so a window left in tree view stays there. netrw fires this FileType event
+-- from s:PerformListing before it renders, which is the hook for overriding it.
+vim.g.netrw_liststyle = 0
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'netrw',
+  callback = function()
+    vim.w.netrw_liststyle = 0
+  end,
+})
+
 -- Basic keymaps
 vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
@@ -263,87 +287,89 @@ vim.keymap.set('n', '<leader>/', function()
   })
 end, { desc = '[/] Fuzzily search in current buffer' })
 
--- Treesitter configuration
-vim.defer_fn(function()
-  require('nvim-treesitter.configs').setup {
-    ensure_installed = {
-      'c',
-      'cpp',
-      'go',
-      'lua',
-      'python',
-      'rust',
-      'tsx',
-      'javascript',
-      'typescript',
-      'vimdoc',
-      'vim',
-      'bash',
-      'html',
-      'css',
-      'json',
-      'toml',
-      'yaml',
-      'dockerfile',
-      'htmldjango',
-    },
-    auto_install = false,
-    highlight = { enable = true },
-    indent = { enable = true },
-    incremental_selection = {
-      enable = true,
-      keymaps = {
-        init_selection = '<c-space>',
-        node_incremental = '<c-space>',
-        scope_incremental = '<c-s>',
-        node_decremental = '<M-space>',
-      },
-    },
-    textobjects = {
-      select = {
-        enable = true,
-        lookahead = true,
-        keymaps = {
-          ['aa'] = '@parameter.outer',
-          ['ia'] = '@parameter.inner',
-          ['af'] = '@function.outer',
-          ['if'] = '@function.inner',
-          ['ac'] = '@class.outer',
-          ['ic'] = '@class.inner',
-        },
-      },
-      move = {
-        enable = true,
-        set_jumps = true,
-        goto_next_start = {
-          [']m'] = '@function.outer',
-          [']]'] = '@class.outer',
-        },
-        goto_next_end = {
-          [']M'] = '@function.outer',
-          [']['] = '@class.outer',
-        },
-        goto_previous_start = {
-          ['[m'] = '@function.outer',
-          ['[['] = '@class.outer',
-        },
-        goto_previous_end = {
-          ['[M'] = '@function.outer',
-          ['[]'] = '@class.outer',
-        },
-      },
-      swap = {
-        enable = true,
-        swap_next = {
-          ['<leader>a'] = '@parameter.inner',
-        },
-        swap_previous = {
-          ['<leader>A'] = '@parameter.inner',
-        },
-      },
-    },
-  }
-end, 0)
+-- Treesitter configuration. On the `main` branch this plugin only installs parsers
+-- and queries; highlighting, folds and injections come from Neovim itself, so each
+-- feature is enabled explicitly below.
+local ts_languages = {
+  'bash',
+  'c',
+  'cpp',
+  'css',
+  'diff',
+  'dockerfile',
+  'go',
+  'html',
+  'htmldjango',
+  'javascript',
+  'json',
+  'liquid',
+  'lua',
+  'luadoc',
+  'python',
+  'rust',
+  'toml',
+  'tsx',
+  'typescript',
+  'vim',
+  'vimdoc',
+  'yaml',
+}
+require('nvim-treesitter').install(ts_languages)
+
+vim.api.nvim_create_autocmd('FileType', {
+  callback = function(ev)
+    -- Only filetypes with a parser; vim.treesitter.start() errors otherwise.
+    if not vim.treesitter.language.get_lang(ev.match) then
+      return
+    end
+    if pcall(vim.treesitter.start) then
+      vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+    end
+  end,
+})
+
+require('nvim-treesitter-textobjects').setup {
+  select = { lookahead = true },
+  move = { set_jumps = true },
+}
+
+local ts_select = require 'nvim-treesitter-textobjects.select'
+for lhs, obj in pairs {
+  ['aa'] = '@parameter.outer',
+  ['ia'] = '@parameter.inner',
+  ['af'] = '@function.outer',
+  ['if'] = '@function.inner',
+  ['ac'] = '@class.outer',
+  ['ic'] = '@class.inner',
+} do
+  vim.keymap.set({ 'x', 'o' }, lhs, function()
+    ts_select.select_textobject(obj, 'textobjects')
+  end, { desc = 'Select ' .. obj })
+end
+
+local ts_move = require 'nvim-treesitter-textobjects.move'
+for lhs, spec in pairs {
+  [']m'] = { 'goto_next_start', '@function.outer' },
+  [']]'] = { 'goto_next_start', '@class.outer' },
+  [']M'] = { 'goto_next_end', '@function.outer' },
+  [']['] = { 'goto_next_end', '@class.outer' },
+  ['[m'] = { 'goto_previous_start', '@function.outer' },
+  ['[['] = { 'goto_previous_start', '@class.outer' },
+  ['[M'] = { 'goto_previous_end', '@function.outer' },
+  ['[]'] = { 'goto_previous_end', '@class.outer' },
+} do
+  vim.keymap.set({ 'n', 'x', 'o' }, lhs, function()
+    ts_move[spec[1]](spec[2], 'textobjects')
+  end, { desc = spec[1] .. ' ' .. spec[2] })
+end
+
+local ts_swap = require 'nvim-treesitter-textobjects.swap'
+vim.keymap.set('n', '<leader>a', function()
+  ts_swap.swap_next '@parameter.inner'
+end, { desc = 'Swap next parameter' })
+vim.keymap.set('n', '<leader>A', function()
+  ts_swap.swap_previous '@parameter.inner'
+end, { desc = 'Swap previous parameter' })
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })

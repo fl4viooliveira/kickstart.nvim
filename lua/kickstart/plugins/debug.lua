@@ -45,6 +45,18 @@ return {
       },
     }
 
+    -- mason-nvim-dap builds its adapter commands with vim.fn.exepath() at module load
+    -- time, which runs before mason prepends its bin directory to PATH, so they come
+    -- out as "" and dap reports "`command` is not executable". Pin them to mason's bin.
+    local mason_bin = vim.fn.stdpath 'data' .. '/mason/bin/'
+    for adapter, exe in pairs { codelldb = 'codelldb', delve = 'dlv' } do
+      local cmd = mason_bin .. exe
+      local cfg = dap.adapters[adapter]
+      if type(cfg) == 'table' and cfg.executable and vim.fn.executable(cmd) == 1 then
+        cfg.executable.command = cmd
+      end
+    end
+
     -- Wire codelldb into rustaceanvim if both are installed.
     local mason_registry_ok, mason_registry = pcall(require, 'mason-registry')
     if mason_registry_ok and mason_registry.is_installed('codelldb') then
