@@ -4,7 +4,7 @@
 return {
   {
     'mrcjkb/rustaceanvim',
-    version = '^5',
+    version = '^9',
     lazy = false,
     ft = { 'rust' },
     config = function()
@@ -78,7 +78,9 @@ return {
         lsp = {
           enabled = true,
           actions = true,
-          completion = true,
+          -- Completion comes from the nvim-cmp source below; enabling it here
+          -- too gives every Cargo.toml candidate twice.
+          completion = false,
           hover = true,
         },
       })
