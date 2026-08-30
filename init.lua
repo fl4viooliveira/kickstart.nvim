@@ -286,6 +286,7 @@ vim.keymap.set('n', '<leader>/', function()
     previewer = false,
   })
 end, { desc = '[/] Fuzzily search in current buffer' })
+vim.keymap.set('n', '<leader>gs', require('telescope.builtin').git_status, { desc = '[G]it [S]tatus (changed files)' })
 
 -- Treesitter configuration. On the `main` branch this plugin only installs parsers
 -- and queries; highlighting, folds and injections come from Neovim itself, so each
