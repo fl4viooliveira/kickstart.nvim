@@ -11,6 +11,9 @@ spell/
 # merge conflicts.
 lazy-lock.json
 
+# vim.pack lockfile, written when running the master branch's config
+nvim-pack-lock.json
+
 .DS_Store
 
 # Neovim log dumps, written into the working directory
